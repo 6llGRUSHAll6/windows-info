@@ -59,6 +59,11 @@ try {
 catch {
     $resolution = "Unknown"
 }
+$publicIP = try { 
+    Invoke-RestMethod -Uri "https://api.ipify.org" -ErrorAction Stop 
+} catch { 
+    "Not Available" 
+}
 $lastBoot = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime
 $uptime = (Get-Date) - $lastBoot
 Write-Host "Uptime:   $($uptime.Days)d $($uptime.Hours)h $($uptime.Minutes)m"
@@ -67,6 +72,7 @@ Write-Host "User:     $env:USERNAME"
 Write-Host "PShell:   $($PSVersionTable.PSVersion)"
 Write-Host "Hostname:   $hostname"
 Write-Host "IP:         $ipv4"
+Write-Host "Public IP:  $publicIP"
 Write-Host "CPU:        $cpu"
 Write-Host "GPU:        $gpu"
 Write-Host "RAM:        $ram"
