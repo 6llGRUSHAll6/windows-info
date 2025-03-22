@@ -3,7 +3,7 @@ $logo = @"
 :;#           #;:        :;
 :;#           #;:   ||   :;
 :;#           #;:   ||   :;###:;
-: ; #   /\    #;:   ||   :;    ;;
+:;#     /\    #;:   ||   :;    ;;
   :; # /  \ #; :    ||   :;    ;;
     : /    \ :      ||   :;    ;;
 "@
@@ -45,8 +45,29 @@ $gpu = (Get-WmiObject Win32_VideoController).Name
 $ram = "{0} GB" -f [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB)
 $edition = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").EditionID
 $architecture = if ([Environment]::Is64BitOperatingSystem) { "64-bit" } else { "32-bit" }
-Write-Host "OS:       $os ($releaseId) [$architecture]"
-Write-Host "Hostname: $hostname"
-Write-Host "CPU:      $cpu"
-Write-Host "GPU:      $gpu"
-Write-Host "RAM:      $ram"
+$network = Get-WmiObject Win32_NetworkAdapterConfiguration | 
+           Where-Object { $_.IPEnabled -and $_.IPAddress -ne $null }
+$ipv4 = $network.IPAddress | 
+        Where-Object { $_ -notlike '*:*' } | 
+        Select-Object -First 1
+if (-not $ipv4) { $ipv4 = "Not Available" }
+Add-Type -AssemblyName System.Windows.Forms -ErrorAction SilentlyContinue
+try {
+    $primaryScreen = [System.Windows.Forms.Screen]::PrimaryScreen
+    $resolution = "$($primaryScreen.Bounds.Width)x$($primaryScreen.Bounds.Height)"
+}
+catch {
+    $resolution = "Unknown"
+}
+$lastBoot = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime
+$uptime = (Get-Date) - $lastBoot
+Write-Host "Uptime:   $($uptime.Days)d $($uptime.Hours)h $($uptime.Minutes)m"
+Write-Host "OS:         $os ($releaseId) [$architecture]"
+Write-Host "User:     $env:USERNAME" 
+Write-Host "PShell:   $($PSVersionTable.PSVersion)"
+Write-Host "Hostname:   $hostname"
+Write-Host "IP:         $ipv4"
+Write-Host "CPU:        $cpu"
+Write-Host "GPU:        $gpu"
+Write-Host "RAM:        $ram"
+Write-Host "Resolution: $resolution"
