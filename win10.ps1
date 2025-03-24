@@ -1,13 +1,5 @@
-$logo = @"
-__        __  ___   _   _ 
-\ \      / / |_ _| | \ | |
- \ \ /\ / /   | |  |  \| |
-  \ V  V /    | |  | |\  |
-   \_/\_/    |___| |_| \_|                                                                                
-"@
-
 function Get-GradientColor {
-    param(
+    param (
         [int[]]$StartColor,
         [int[]]$EndColor,
         [int]$Steps
@@ -21,24 +13,125 @@ function Get-GradientColor {
     }
     return $colors
 }
-$startRGB = @(0, 255, 255)
-$endRGB = @(100, 130, 255)
-$logo -split "`n" | ForEach-Object {
-    $line = $_
-    $colors = Get-GradientColor -StartColor $startRGB -EndColor $endRGB -Steps $line.Length
-    $output = ""
-    for ($i = 0; $i -lt $line.Length; $i++) {
-        $escCode = [char]0x1B + "[38;2;$($colors[$i])m"
-        $output += "$escCode$($line[$i])"
+$logos = @{
+    "Windows 11" = @{
+        logo = @"
+__        __  ___   _   _      _   _ 
+\ \      / / |_ _| | \ | |    / | / |
+ \ \ /\ / /   | |  |  \| |    | | | |
+  \ V  V /    | |  | |\  |    | | | |
+   \_/\_/    |___| |_| \_|    |_| |_| 
+"@
+        startColor = @(0, 255, 255)  
+        endColor = @(0, 0, 255)      
     }
-    $output += [char]0x1B + "[0m"
-    $output
+    "Windows 10" = @{
+        logo = @"
+__        __  ___   _   _      _    ___  
+\ \      / / |_ _| | \ | |    / |  / _ \ 
+ \ \ /\ / /   | |  |  \| |    | | | | | |
+  \ V  V /    | |  | |\  |    | | | |_| |
+   \_/\_/    |___| |_| \_|    |_|  \___/ 
+"@
+        startColor = @(0, 0, 255)   
+        endColor = @(0, 0, 255)     
+    }
+    "Windows 7" = @{
+        logo = @"
+__        __  ___   _   _      _____ 
+\ \      / / |_ _| | \ | |    |___  |
+ \ \ /\ / /   | |  |  \| |       / / 
+  \ V  V /    | |  | |\  |      / /  
+   \_/\_/    |___| |_| \_|     /_/   
+"@
+        startColor = @(0, 255, 255)  
+        endColor = @(144, 238, 144)  
+    }
+    "Windows 8" = @{
+        logo = @"
+__        __  ___   _   _       ___  
+\ \      / / |_ _| | \ | |     ( _ ) 
+ \ \ /\ / /   | |  |  \| |     / _ \ 
+  \ V  V /    | |  | |\  |    | (_) |
+   \_/\_/    |___| |_| \_|     \___/ 
+"@
+        startColor = @(255, 165, 0) 
+        endColor = @(255, 165, 0)    
+    }
+    "Windows 8.1" = @{
+        logo = @"
+__        __  ___   _   _       ___        _ 
+\ \      / / |_ _| | \ | |     ( _ )      / |
+ \ \ /\ / /   | |  |  \| |     / _ \      | |
+  \ V  V /    | |  | |\  |    | (_) |  _  | |
+   \_/\_/    |___| |_| \_|     \___/  (_) |_|
+"@
+        startColor = @(255, 165, 0) 
+        endColor = @(255, 255, 0)     
+    }
+    "Windows Unknown" = @{
+        logo = @"
+__        __  ___   _   _      ___ 
+\ \      / / |_ _| | \ | |    |__ \
+ \ \ /\ / /   | |  |  \| |      / /
+  \ V  V /    | |  | |\  |     |_| 
+   \_/\_/    |___| |_| \_|     (_) 
+"@
+        startColor = @(255, 0, 0)    
+        endColor = @(255, 0, 0)      
+    }
+}
+function Print-Logo {
+    param (
+        [string]$osName
+    )
+    $logoInfo = $logos[$osName]
+    $logo = $logoInfo.logo
+    $startRGB = $logoInfo.startColor
+    $endRGB = $logoInfo.endColor
+    $lines = $logo -split "`n"
+    $colors = Get-GradientColor -StartColor $startRGB -EndColor $endRGB -Steps $lines.Length
+    foreach ($i in 0..($lines.Length - 1)) {
+        $escCode = [char]0x1B + "[38;2;$($colors[$i])m"
+        Write-Host "$escCode$($lines[$i])"
+    }
+}
+$os = Get-WmiObject -Class Win32_OperatingSystem
+$osVersion = $os.Version
+$osCaption = $os.Caption
+if ($osVersion -like "10.0*") {
+    if ($osCaption -like "*Windows 11*") {
+        Print-Logo "Windows 11"
+    }
+    else {
+        Print-Logo "Windows 10"
+    }
+} elseif ($osVersion -like "6.1*") {
+    Print-Logo "Windows 7"
+} elseif ($osVersion -like "6.2*" -or $osVersion -like "6.3*") {
+    if ($osVersion -like "6.3*") {
+        Print-Logo "Windows 8.1"
+    } else {
+        Print-Logo "Windows 8"
+    }
+} else {
+    Print-Logo "Windows Unknown"
+}
+function Print-WithDelay {
+    param (
+        [string]$Text,
+        [int]$Delay = 15
+    )
+    foreach ($char in $Text.ToCharArray()) {
+        Write-Host -NoNewline $char
+        Start-Sleep -Milliseconds $Delay
+    }
+    Write-Host
 }
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $uptime = python "$scriptDirectory\uptime.py"
 $osInfo = Get-WmiObject Win32_OperatingSystem
 $os = $osInfo.Caption
-$version = $osInfo.Version
 $releaseId = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").DisplayVersion
 $totalMemoryKB = $osInfo.TotalVisibleMemorySize
 $freeMemoryKB = $osInfo.FreePhysicalMemory
@@ -69,15 +162,14 @@ $publicIP = try {
     "Not Available" 
 }
 
-Write-Host "Uptime:     $uptime"
-Write-Host "OS:         $os ($releaseId)"
-Write-Host "Version:    $version"
-Write-Host "Hostname:   $hostname"
-Write-Host "User:       $env:USERNAME"
-Write-Host "PShell:     $($PSVersionTable.PSVersion)"
-Write-Host "IP:         $ipv4"
-Write-Host "Public IP:  $publicIP"
-Write-Host "CPU:        $cpu"
-Write-Host "GPU:        $gpu"
-Write-Host "RAM:        $ram"
-Write-Host "Resolution: $resolution"
+Print-WithDelay "Uptime:     $uptime"
+Print-WithDelay "OS:         $os ($releaseId)"
+Print-WithDelay "Hostname:   $hostname"
+Print-WithDelay "User:       $env:USERNAME"
+Print-WithDelay "PShell:     $($PSVersionTable.PSVersion)"
+Print-WithDelay "IP:         $ipv4"
+Print-WithDelay "Public IP:  $publicIP"
+Print-WithDelay "CPU:        $cpu"
+Print-WithDelay "GPU:        $gpu"
+Print-WithDelay "RAM:        $ram"
+Print-WithDelay "Resolution: $resolution"
