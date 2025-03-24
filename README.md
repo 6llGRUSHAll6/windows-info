@@ -1,6 +1,7 @@
 # windows-info
 information about windows as on linux
 
+download python libraries ``pip install -r requirements.txt``
 
 just open start.bat!
 
