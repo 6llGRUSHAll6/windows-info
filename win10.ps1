@@ -5,6 +5,7 @@ __        __  ___   _   _
   \ V  V /    | |  | |\  |
    \_/\_/    |___| |_| \_|                                                                                
 "@
+
 function Get-GradientColor {
     param(
         [int[]]$StartColor,
@@ -33,16 +34,20 @@ $logo -split "`n" | ForEach-Object {
     $output += [char]0x1B + "[0m"
     $output
 }
+$uptime = python "C:\Users\user\Desktop\windows-info — копия (2)\uptime.py"
 $osInfo = Get-WmiObject Win32_OperatingSystem
 $os = $osInfo.Caption
 $version = $osInfo.Version
 $releaseId = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").DisplayVersion
+$totalMemoryKB = $osInfo.TotalVisibleMemorySize
+$freeMemoryKB = $osInfo.FreePhysicalMemory
+$usedMemoryKB = $totalMemoryKB - $freeMemoryKB
+$totalMemoryMB = [math]::Round($totalMemoryKB / 1024)
+$usedMemoryMB = [math]::Round($usedMemoryKB / 1024)
+$ram = "$usedMemoryMB/$totalMemoryMB MB"
 $hostname = $env:COMPUTERNAME
-$cpu = (Get-WmiObject Win32_Processor).Name
-$gpu = (Get-WmiObject Win32_VideoController).Name
-$ram = "{0} GB" -f [math]::Round((Get-CimInstance Win32_PhysicalMemory | Measure-Object -Property Capacity -Sum).Sum / 1GB)
-$edition = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion").EditionID
-$architecture = if ([Environment]::Is64BitOperatingSystem) { "64-bit" } else { "32-bit" }
+$cpu = (Get-WmiObject Win32_Processor).Name -replace '\s+', ' '
+$gpu = (Get-WmiObject Win32_VideoController).Name -replace '\s+', ' '
 $network = Get-WmiObject Win32_NetworkAdapterConfiguration | 
            Where-Object { $_.IPEnabled -and $_.IPAddress -ne $null }
 $ipv4 = $network.IPAddress | 
@@ -62,13 +67,13 @@ $publicIP = try {
 } catch { 
     "Not Available" 
 }
-$lastBoot = (Get-CimInstance Win32_OperatingSystem).LastBootUpTime
-$uptime = (Get-Date) - $lastBoot
-Write-Host "Uptime:   $($uptime.Days)d $($uptime.Hours)h $($uptime.Minutes)m"
-Write-Host "OS:         $os ($releaseId) [$architecture]"
-Write-Host "User:     $env:USERNAME" 
-Write-Host "PShell:   $($PSVersionTable.PSVersion)"
+
+Write-Host "Uptime:     $uptime"
+Write-Host "OS:         $os ($releaseId)"
+Write-Host "Version:    $version"
 Write-Host "Hostname:   $hostname"
+Write-Host "User:       $env:USERNAME"
+Write-Host "PShell:     $($PSVersionTable.PSVersion)"
 Write-Host "IP:         $ipv4"
 Write-Host "Public IP:  $publicIP"
 Write-Host "CPU:        $cpu"
