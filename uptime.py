@@ -8,4 +8,4 @@ days = uptime.days
 hours, remainder = divmod(uptime.seconds, 3600)
 minutes, seconds = divmod(remainder, 60)
 uptime_str = f"{days}d {hours}h {minutes}m"
-print(f"Uptime:     {uptime_str}")
+print(f"{uptime_str}")
