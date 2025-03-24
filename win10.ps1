@@ -34,7 +34,8 @@ $logo -split "`n" | ForEach-Object {
     $output += [char]0x1B + "[0m"
     $output
 }
-$uptime = python "C:\Users\user\Desktop\windows-info — копия (2)\uptime.py"
+$scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
+$uptime = python "$scriptDirectory\uptime.py"
 $osInfo = Get-WmiObject Win32_OperatingSystem
 $os = $osInfo.Caption
 $version = $osInfo.Version
