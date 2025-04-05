@@ -1,10 +1,19 @@
-# windows-info
-information about windows as on linux
+# Windows Info
 
-download python libraries ``pip install -r requirements.txt``
+**Windows Info** is a simple tool that displays detailed system information on Windows — inspired by popular Linux system info utilities.
 
-just open start.bat!
+## Getting Started
 
-in the future I will develop the project (probably..!)
+Follow the steps below to set up and run the project.
 
-run on powershell 7
+### Prerequisites
+
+- [Python](https://www.python.org/downloads/)
+- [PowerShell 7](https://github.com/PowerShell/PowerShell/releases)
+
+### Installation
+
+1. **Install Python dependencies:**
+
+   ```
+   pip install -r requirements.txt
